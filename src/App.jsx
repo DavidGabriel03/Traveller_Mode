@@ -14,54 +14,62 @@ const Sidebar = () => (
     </nav>
   </div>
 );
-
+function ClickHandler({ setMarkers }) {
+  const map = useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      const name = prompt("Cum se numește acest loc?"); // O metodă rapidă de a da nume
+      if (name) {
+        setMarkers(prev => [...prev, { lat, lng, name, id: Date.now() }]);
+      }
+    },
+  });
+  return null;
+}
 // Pagini
 const Home = () => {
-  const [position, setPosition] = useState(null); // Aici salvăm locația ta
+  const [position, setPosition] = useState(null);
+  const [markers, setMarkers] = useState([]); // Aici ținem lista de locuri salvate
 
+  // ... (păstrăm useEffect-ul de geolocație de mai devreme)
   useEffect(() => {
-    // Întrebăm browserul unde ești
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition([latitude, longitude]);
-      },
-      (err) => {
-        console.error("Eroare la geolocație:", err);
-        // Dacă dai "Deny" sau e o eroare, punem București ca backup
-        setPosition([44.4268, 26.1025]);
-      }
+      (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
+      () => setPosition([44.4268, 26.1025])
     );
   }, []);
 
-  // Până când browserul răspunde, afișăm un mesaj de încărcare
-  if (!position) {
-    return (
-      <div className="flex items-center justify-center h-full bg-slate-900 text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-indigo-500 mr-4"></div>
-        Căutăm coordonatele tale...
-      </div>
-    );
-  }
+  if (!position) return <div className="p-20 text-white">Se încarcă harta...</div>;
 
   return (
     <div className="w-full h-full relative">
-      <MapContainer 
-        center={position} 
-        zoom={13} 
-        style={{ height: "100%", width: "100%" }}
-      >
+      <MapContainer center={position} zoom={13} style={{ height: "100%", width: "100%" }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         
-        {/* Markerul va fi acum exact unde ești tu */}
+        {/* Activăm ascultătorul de click-uri */}
+        <ClickHandler setMarkers={setMarkers} />
+
+        {/* Afișăm markerul cu locația ta */}
         <Marker position={position}>
-          <Popup>Ești aici!</Popup>
+          <Popup>Ești aici! 📍</Popup>
         </Marker>
+
+        {/* Afișăm toate locurile pe care ai dat click */}
+        {markers.map(m => (
+          <Marker key={m.id} position={[m.lat, m.lng]}>
+            <Popup className="font-bold text-indigo-600">{m.name}</Popup>
+          </Marker>
+        ))}
       </MapContainer>
+
+      {/* Mic panou de statistici în colțul hărții */}
+      <div className="absolute top-4 right-4 z-[1000] bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 text-white shadow-2xl">
+        <h3 className="text-sm font-bold text-indigo-400 mb-1 uppercase tracking-widest">Jurnal de călătorie</h3>
+        <p className="text-2xl font-black">{markers.length} <span className="text-sm font-normal text-slate-400">locuri vizitate</span></p>
+      </div>
     </div>
   );
 };
-
 const Login = () => (
   <div className="flex items-center justify-center h-full bg-slate-950">
     <div className="bg-slate-900 p-10 rounded-3xl shadow-2xl border border-slate-800 w-[400px]">
