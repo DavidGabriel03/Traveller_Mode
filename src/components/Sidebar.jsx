@@ -48,9 +48,9 @@ export default function Sidebar() {
                 My Travels
               </Link>
             )}
-            <Link to="/profile" className="text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800">
-              Profilul meu
-            </Link>
+         <Link to="/profile" className="text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800 transition-all">
+  Profilul Meu
+</Link>
           </>
         )}
       </div>
