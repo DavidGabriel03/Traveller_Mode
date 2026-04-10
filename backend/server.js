@@ -1,7 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 dotenv.config();
 const app = express();
@@ -9,68 +10,89 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// CONEXIUNEA LA MONGODB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("✅ Conectat la MongoDB!"))
-    .catch(err => console.error("❌ Eroare la conexiune:", err));
+// CONEXIUNEA LA MYSQL ȘI SINCRONIZAREA MODELELOR
+const sequelize = require('./db');
+const User = require('./models/User');
+const City = require('./models/City');
 
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ Conectat la MySQL!');
+    return sequelize.sync({ force: false });
+  })
+  .then(() => {
+    console.log('✅ Tabele sincronizate!');
+  })
+  .catch(err => console.error('❌ Eroare la conexiune:', err));
 app.get('/', (req, res) => res.send("Serverul și Baza de Date sunt legate!"));
 
-const User = require('./models/User');
-
-const bcrypt = require('bcryptjs');
-
+// REGISTER
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // 1. Criptăm parola
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 2. Salvăm user-ul cu parola criptată
-    const newUser = new User({ 
-      username, 
-      email, 
-      password: hashedPassword, 
-      role: role || 'user' 
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role: role || 'user'
     });
-    
-    await newUser.save();
+
     res.status(201).json({ msg: "Utilizator creat cu succes!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-const jwt = require('jsonwebtoken');
 
+// LOGIN
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Verificăm dacă user-ul există
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ msg: "Email incorect!" });
 
-    // 2. Comparăm parola introdusă cu cea criptată din DB
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Parolă incorectă!" });
 
-    // 3. Creăm Token-ul (Biletul de acces)
     const token = jwt.sign(
-      { id: user._id, role: user.role }, 
-      process.env.JWT_SECRET || 'secret_cheie_test', 
-      { expiresIn: '1d' } // Tokenul expiră în 24h
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET || 'secret_cheie_test',
+      { expiresIn: '1d' }
     );
 
     res.json({
       token,
-      user: { id: user._id, username: user.username, role: user.role }
+      user: { id: user.id, username: user.username, role: user.role }
     });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 const PORT = 5000;
+// GET toate orașele
+app.get('/api/cities', async (req, res) => {
+  try {
+    const cities = await City.findAll();
+    res.json(cities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET un oraș după id
+app.get('/api/cities/:id', async (req, res) => {
+  try {
+    const city = await City.findByPk(req.params.id);
+    if (!city) return res.status(404).json({ msg: "Orașul nu există!" });
+    res.json(city);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));

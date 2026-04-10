@@ -5,12 +5,14 @@ import "leaflet/dist/leaflet.css";
 
 // 1. IMPORTĂM Sidebar-ul (cel cu logică de login/logout) din fișierul lui
 import Sidebar from "./components/Sidebar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // 2. IMPORTĂM restul paginilor din folderele lor (nu le mai scriem aici!)
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/user/Profile";
+import CityPage from "./pages/CityPage";
 
 // 3. PLACEHOLDERS pentru paginile care nu au încă un fișier separat
 // Le dăm nume diferite față de importuri ca să nu crape
@@ -50,6 +52,7 @@ export default function App() {
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/city/:id" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
