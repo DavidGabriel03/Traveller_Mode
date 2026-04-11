@@ -28,16 +28,23 @@ useEffect(() => {
 }, [id]);
 
 const handleVisit = async () => {
-  const res = await fetch('http://localhost:5000/api/visits', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ CityId: parseInt(id) })
-  });
-
-  if (res.ok) setVisited(true);
+  if (visited) {
+    const res = await fetch(`http://localhost:5000/api/visits/${parseInt(id)}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) setVisited(false);
+  } else {
+    const res = await fetch('http://localhost:5000/api/visits', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ CityId: parseInt(id) })
+    });
+    if (res.ok) setVisited(true);
+  }
 };
 
 const handleDelete = async (commentId) => {
@@ -98,16 +105,15 @@ const handleDelete = async (commentId) => {
           ← Înapoi
         </button>
         <button
-  onClick={handleVisit}
-  disabled={visited}
-  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-    visited 
-      ? 'bg-emerald-500/20 text-emerald-400 cursor-default' 
-      : 'bg-slate-800 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400'
-  }`}
->
-  {visited ? '✓ Vizitat' : '+ Marchează vizitat'}
-</button>
+        onClick={handleVisit}
+        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+          visited
+            ? 'bg-emerald-500/20 text-emerald-400 hover:bg-red-500/20 hover:text-red-400'
+            : 'bg-slate-800 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400'
+        }`}
+      >
+        {visited ? '✓ Vizitat — click să deselectezi' : '+ Marchează vizitat'}
+      </button>
         <div className="flex items-center gap-4">
           <img src={city.image} alt={city.name} className="w-16 h-16 object-cover rounded-xl"/>
           <div>

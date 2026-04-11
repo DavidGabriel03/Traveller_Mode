@@ -14,16 +14,8 @@ import Register from "./pages/auth/Register";
 import Profile from "./pages/user/Profile";
 import CityPage from "./pages/CityPage";
 import UserDashboard from "./pages/user/UserDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
-// 3. PLACEHOLDERS pentru paginile care nu au încă un fișier separat
-// Le dăm nume diferite față de importuri ca să nu crape
-const AdminDashboard = () => (
-  <div className="flex items-center justify-center h-full text-white">
-    <h1 className="text-4xl font-black italic text-indigo-500 text-center">
-      ADMIN PANEL <br/> <span className="text-sm text-slate-500 not-italic">Se lucrează aici...</span>
-    </h1>
-  </div>
-);
 
 // Aplicația principală
 export default function App() {

@@ -78,7 +78,7 @@ app.post('/api/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, username: user.username, role: user.role }
+     user: { id: user.id, username: user.username, email: user.email, role: user.role }
     });
 
   } catch (err) {
@@ -223,6 +223,129 @@ app.delete('/api/visits/:cityId', async (req, res) => {
 
     await Visit.destroy({ where: { UserId: decoded.id, CityId: req.params.cityId } });
     res.json({ msg: "Vizită ștearsă!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.get('/api/mycomments', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const comments = await Comment.findAll({ where: { UserId: decoded.id } });
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET toți userii
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const users = await User.findAll({ attributes: ['id', 'username', 'email', 'role', 'createdAt'] });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SCHIMBĂ rolul unui user
+app.put('/api/admin/users/:id/role', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const { role } = req.body;
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ msg: "Userul nu există!" });
+
+    await user.update({ role });
+    res.json({ msg: "Rol actualizat!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE user
+app.delete('/api/admin/users/:id', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    if (decoded.id === parseInt(req.params.id)) 
+      return res.status(400).json({ msg: "Nu te poți șterge pe tine însuți!" });
+
+    await User.destroy({ where: { id: req.params.id } });
+    res.json({ msg: "User șters!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// GET toate comentariile
+app.get('/api/admin/comments', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const comments = await Comment.findAll({
+      include: [
+        { model: User, attributes: ['username'] },
+        { model: City, attributes: ['name'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// UPDATE statistici oraș
+app.put('/api/admin/cities/:id/stats', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const { tourism_rating, safety_rating, economy_rating } = req.body;
+    const city = await City.findByPk(req.params.id);
+    if (!city) return res.status(404).json({ msg: "Orașul nu există!" });
+
+    // Calculăm livability_score din cele 3 + media comentariilor
+    const comments = await Comment.findAll({ where: { CityId: req.params.id } });
+    const avgComments = comments.length > 0 
+      ? comments.reduce((sum, c) => sum + c.rating, 0) / comments.length 
+      : 0;
+    
+    const livability = (
+      (parseFloat(tourism_rating) + parseFloat(safety_rating) + parseFloat(economy_rating) + avgComments) / 4
+    ).toFixed(2);
+
+    await city.update({ tourism_rating, safety_rating, economy_rating, livability_score: livability });
+    res.json({ msg: "Statistici actualizate!", livability_score: livability });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET toate orașele pentru admin
+app.get('/api/admin/cities', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const cities = await City.findAll({ 
+      attributes: ['id', 'name', 'country', 'tourism_rating', 'safety_rating', 'economy_rating', 'livability_score'] 
+    });
+    res.json(cities);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
