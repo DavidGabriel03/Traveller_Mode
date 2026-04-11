@@ -458,4 +458,36 @@ app.get('/api/admin/stats', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.put('/api/profile', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const { username, currentPassword, newPassword } = req.body;
+
+    const user = await User.findByPk(decoded.id);
+
+    // Schimbă username
+    if (username) await user.update({ username });
+
+    // Schimbă parola
+    if (currentPassword && newPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) return res.status(400).json({ msg: "Parola curentă e greșită!" });
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      await user.update({ password: hashedPassword });
+    }
+
+    // Actualizează localStorage
+    res.json({ 
+      msg: "Profil actualizat!",
+      user: { id: user.id, username: user.username, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));

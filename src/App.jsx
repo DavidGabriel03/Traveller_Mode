@@ -11,6 +11,7 @@ import Profile from "./pages/user/Profile";
 import CityPage from "./pages/CityPage";
 import UserDashboard from "./pages/user/UserDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import CitiesPage from "./pages/CitiesPage";
 
 function AppContent() {
   const location = useLocation();
@@ -29,6 +30,7 @@ function AppContent() {
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/city/:id" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
+          <Route path="/cities" element={<ProtectedRoute><CitiesPage /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>
