@@ -433,4 +433,29 @@ app.post('/api/upload', upload.single('photo'), (req, res) => {
   res.json({ url: `http://localhost:5000/uploads/${req.file.filename}` });
 });
 app.use('/uploads', express.static('uploads'));
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    if (decoded.role !== 'admin') return res.status(403).json({ msg: "Acces interzis!" });
+
+    const totalUsers = await User.count();
+    const totalComments = await Comment.count();
+    const totalVisits = await Visit.count();
+    const totalCities = await City.count();
+
+    // Cele mai vizitate orașe
+    const topCities = await Visit.findAll({
+      attributes: ['CityId', [sequelize.fn('COUNT', sequelize.col('CityId')), 'visits']],
+      include: [{ model: City, attributes: ['name', 'image'] }],
+      group: ['CityId', 'City.id', 'City.name', 'City.image'],
+      order: [[sequelize.fn('COUNT', sequelize.col('CityId')), 'DESC']],
+      limit: 5
+    });
+
+    res.json({ totalUsers, totalComments, totalVisits, totalCities, topCities });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));

@@ -4,6 +4,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [comments, setComments] = useState([]);
   const [cities, setCities] = useState([]);
+  const [stats, setStats] = useState(null);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -18,6 +19,12 @@ export default function AdminDashboard() {
     fetch('http://localhost:5000/api/admin/cities', {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setCities(data));
+    
+    fetch('http://localhost:5000/api/admin/stats', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setStats(data));
   }, []);
 
   const handleRoleChange = async (id, newRole) => {
@@ -62,7 +69,41 @@ export default function AdminDashboard() {
   return (
     <div className="h-full overflow-y-auto bg-slate-950 text-white p-8">
       <h1 className="text-3xl font-black text-indigo-400 mb-8">Admin Panel</h1>
+      {/* Statistici generale */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {[
+            { label: "Useri", value: stats.totalUsers, color: "text-indigo-400" },
+            { label: "Orașe", value: stats.totalCities, color: "text-emerald-400" },
+            { label: "Comentarii", value: stats.totalComments, color: "text-amber-400" },
+            { label: "Vizite", value: stats.totalVisits, color: "text-pink-400" },
+          ].map(s => (
+            <div key={s.label} className="bg-slate-900 rounded-2xl p-6 border border-slate-800 text-center">
+              <p className={`text-4xl font-black ${s.color}`}>{s.value}</p>
+              <p className="text-slate-400 text-xs uppercase tracking-widest mt-2">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
+      {/* Top orașe vizitate */}
+      {stats?.topCities?.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-xl font-black text-slate-300 mb-4 uppercase tracking-widest">Top orașe vizitate</h2>
+          <div className="flex gap-4 flex-wrap">
+            {stats.topCities.map((c, i) => (
+              <div key={c.CityId} className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-center gap-3">
+                <span className="text-2xl font-black text-indigo-400">#{i + 1}</span>
+                <img src={c.City?.image} alt={c.City?.name} className="w-10 h-10 rounded-xl object-cover"/>
+                <div>
+                  <p className="font-bold text-white">{c.City?.name}</p>
+                  <p className="text-slate-400 text-xs">{c.dataValues?.visits} vizite</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Management Useri */}
       <h2 className="text-xl font-black text-slate-300 mb-4 uppercase tracking-widest">Useri</h2>
       <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden mb-10">
