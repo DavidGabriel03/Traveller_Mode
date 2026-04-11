@@ -6,4 +6,3 @@ const sequelize = new Sequelize('traveller_mode', 'root', '123456789', {
 });
 
 module.exports = sequelize;
-

@@ -1,4 +1,4 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { useState } from "react";
 
 export default function Sidebar() {
@@ -19,33 +19,57 @@ export default function Sidebar() {
       <p className="text-2xl font-black text-indigo-500 mb-8 text-center">
         TRAVELLER
       </p>
-      <Link to="/" onClick={() => setOpen(false)} className="text-slate-300 hover:text-white transition-all py-2 px-4 rounded-lg hover:bg-slate-800">
+      <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) =>
+        isActive
+          ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
+          : "text-slate-300 hover:text-white transition-all py-2 px-4 rounded-lg hover:bg-slate-800"
+      }>
         Home
-      </Link>
+      </NavLink>
 
       {!user ? (
         <>
-          <Link to="/login" onClick={() => setOpen(false)} className="text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800">
+          <NavLink to="/login" onClick={() => setOpen(false)} className={({ isActive }) =>
+            isActive
+              ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
+              : "text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800"
+          }>
             Login
-          </Link>
-          <Link to="/register" onClick={() => setOpen(false)} className="text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800">
+          </NavLink>
+          <NavLink to="/register" onClick={() => setOpen(false)} className={({ isActive }) =>
+            isActive
+              ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
+              : "text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800"
+          }>
             Register
-          </Link>
+          </NavLink>
         </>
       ) : (
         <>
           {user.role === "admin" ? (
-            <Link to="/admin-dashboard" onClick={() => setOpen(false)} className="text-indigo-400 font-bold py-2 px-4 border-l-2 border-indigo-400 bg-indigo-500/5">
+            <NavLink to="/admin-dashboard" onClick={() => setOpen(false)} className={({ isActive }) =>
+              isActive
+                ? "text-indigo-400 font-bold py-2 px-4 border-l-2 border-indigo-400 bg-indigo-500/5"
+                : "text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800"
+            }>
               Admin Panel
-            </Link>
+            </NavLink>
           ) : (
-            <Link to="/user-dashboard" onClick={() => setOpen(false)} className="text-emerald-400 font-bold py-2 px-4 border-l-2 border-emerald-400 bg-emerald-500/5">
+            <NavLink to="/user-dashboard" onClick={() => setOpen(false)} className={({ isActive }) =>
+              isActive
+                ? "text-emerald-400 font-bold py-2 px-4 border-l-2 border-emerald-400 bg-emerald-500/5"
+                : "text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800"
+            }>
               My Travels
-            </Link>
+            </NavLink>
           )}
-          <Link to="/profile" onClick={() => setOpen(false)} className="text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800 transition-all">
+          <NavLink to="/profile" onClick={() => setOpen(false)} className={({ isActive }) =>
+            isActive
+              ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
+              : "text-slate-300 hover:text-white py-2 px-4 rounded-lg hover:bg-slate-800 transition-all"
+          }>
             Profilul Meu
-          </Link>
+          </NavLink>
         </>
       )}
     </div>

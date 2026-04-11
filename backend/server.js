@@ -14,6 +14,18 @@ app.use(cors());
 const sequelize = require('./db');
 const User = require('./models/User');
 const City = require('./models/City');
+const Comment = require('./models/Comment');
+const Visit = require('./models/Visit');
+
+// Relații
+User.hasMany(Comment, { foreignKey: 'UserId' });
+Comment.belongsTo(User, { foreignKey: 'UserId' });
+City.hasMany(Comment, { foreignKey: 'CityId' });
+Comment.belongsTo(City, { foreignKey: 'CityId' });
+User.hasMany(Visit, { foreignKey: 'UserId' });
+Visit.belongsTo(User, { foreignKey: 'UserId' });
+City.hasMany(Visit, { foreignKey: 'CityId' });
+Visit.belongsTo(City, { foreignKey: 'CityId' });
 
 sequelize.authenticate()
   .then(() => {
@@ -91,6 +103,126 @@ app.get('/api/cities/:id', async (req, res) => {
     const city = await City.findByPk(req.params.id);
     if (!city) return res.status(404).json({ msg: "Orașul nu există!" });
     res.json(city);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST comentariu nou
+app.post('/api/cities/:id/comments', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    
+    const { text, rating } = req.body;
+    const comment = await Comment.create({
+      text,
+      rating,
+      UserId: decoded.id,
+      CityId: req.params.id
+    });
+
+    // Recalculăm livability_score
+    const comments = await Comment.findAll({ where: { CityId: req.params.id } });
+    const avgRating = comments.reduce((sum, c) => sum + c.rating, 0) / comments.length;
+    const city = await City.findByPk(req.params.id);
+    const livability = ((city.tourism_rating + city.safety_rating + city.economy_rating + avgRating) / 4).toFixed(2);
+    await city.update({ livability_score: livability });
+
+    res.status(201).json(comment);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET comentarii oraș
+app.get('/api/cities/:id/comments', async (req, res) => {
+  try {
+    const comments = await Comment.findAll({ 
+      where: { CityId: req.params.id },
+      include: [{ model: User, attributes: ['username'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(comments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE comentariu
+app.delete('/api/comments/:id', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const comment = await Comment.findByPk(req.params.id);
+
+    if (!comment) return res.status(404).json({ msg: "Comentariul nu există!" });
+
+    // Verificăm dacă e autorul sau adminul
+    if (comment.UserId !== decoded.id && decoded.role !== 'admin') {
+      return res.status(403).json({ msg: "Nu ai permisiunea să ștergi acest comentariu!" });
+    }
+
+    await comment.destroy();
+    res.json({ msg: "Comentariu șters!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Marchează un oraș ca vizitat
+app.post('/api/visits', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const { CityId } = req.body;
+
+    // Verificăm să nu existe deja
+    const existing = await Visit.findOne({ where: { UserId: decoded.id, CityId } });
+    if (existing) return res.status(400).json({ msg: "Orașul e deja marcat ca vizitat!" });
+
+    const visit = await Visit.create({ UserId: decoded.id, CityId });
+    res.status(201).json(visit);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET vizitele unui user
+app.get('/api/visits', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+
+    const visits = await Visit.findAll({
+      where: { UserId: decoded.id },
+      include: [{ model: City, attributes: ['id', 'name', 'country', 'image'] }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json(visits);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE vizită
+app.delete('/api/visits/:cityId', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+
+    await Visit.destroy({ where: { UserId: decoded.id, CityId: req.params.cityId } });
+    res.json({ msg: "Vizită ștearsă!" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

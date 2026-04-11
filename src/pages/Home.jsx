@@ -25,7 +25,10 @@ export default function Home() {
   return (
     <div className="w-full h-full relative">
       <MapContainer center={[48, 15]} zoom={4} style={{ height: "100%", width: "100%" }}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+       <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+        />
 
         <Marker position={position}>
           <Popup>Ești aici! 📍</Popup>
