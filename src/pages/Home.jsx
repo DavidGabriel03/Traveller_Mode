@@ -1,9 +1,12 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 
 export default function Home() {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/welcome" />;
+
   const [position, setPosition] = useState(null);
   const [cities, setCities] = useState([]);
   const navigate = useNavigate();
@@ -25,7 +28,7 @@ export default function Home() {
   return (
     <div className="w-full h-full relative">
       <MapContainer center={[48, 15]} zoom={4} style={{ height: "100%", width: "100%" }}>
-       <TileLayer
+        <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
         />

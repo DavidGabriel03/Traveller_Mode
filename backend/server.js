@@ -16,6 +16,21 @@ const User = require('./models/User');
 const City = require('./models/City');
 const Comment = require('./models/Comment');
 const Visit = require('./models/Visit');
+const CityPhoto = require('./models/CityPhoto');
+
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
 
 // Relații
 User.hasMany(Comment, { foreignKey: 'UserId' });
@@ -26,6 +41,11 @@ User.hasMany(Visit, { foreignKey: 'UserId' });
 Visit.belongsTo(User, { foreignKey: 'UserId' });
 City.hasMany(Visit, { foreignKey: 'CityId' });
 Visit.belongsTo(City, { foreignKey: 'CityId' });
+User.hasMany(CityPhoto, { foreignKey: 'UserId' });
+CityPhoto.belongsTo(User, { foreignKey: 'UserId' });
+City.hasMany(CityPhoto, { foreignKey: 'CityId' });
+CityPhoto.belongsTo(City, { foreignKey: 'CityId' });
+
 
 sequelize.authenticate()
   .then(() => {
@@ -350,4 +370,67 @@ app.get('/api/admin/cities', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// GET pozele unui oraș
+app.get('/api/cities/:id/photos', async (req, res) => {
+  try {
+    const photos = await CityPhoto.findAll({
+      where: { CityId: req.params.id },
+      include: [{ model: User, attributes: ['username'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(photos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST poză nouă
+app.post('/api/cities/:id/photos', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const { url, caption } = req.body;
+
+    const photo = await CityPhoto.create({
+      url,
+      caption,
+      UserId: decoded.id,
+      CityId: req.params.id
+    });
+
+    res.status(201).json(photo);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE poză
+app.delete('/api/photos/:id', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ msg: "Neautorizat!" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_cheie_test');
+    const photo = await CityPhoto.findByPk(req.params.id);
+
+    if (!photo) return res.status(404).json({ msg: "Poza nu există!" });
+
+    if (photo.UserId !== decoded.id && decoded.role !== 'admin') {
+      return res.status(403).json({ msg: "Nu ai permisiunea!" });
+    }
+
+    await photo.destroy();
+    res.json({ msg: "Poză ștearsă!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/upload', upload.single('photo'), (req, res) => {
+  if (!req.file) return res.status(400).json({ msg: "Niciun fișier!" });
+  res.json({ url: `http://localhost:5000/uploads/${req.file.filename}` });
+});
+app.use('/uploads', express.static('uploads'));
 app.listen(PORT, () => console.log(`🚀 Server pe portul ${PORT}`));

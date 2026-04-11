@@ -1,13 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
-// 1. IMPORTĂM Sidebar-ul (cel cu logică de login/logout) din fișierul lui
 import Sidebar from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-// 2. IMPORTĂM restul paginilor din folderele lor (nu le mai scriem aici!)
+import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -16,31 +12,33 @@ import CityPage from "./pages/CityPage";
 import UserDashboard from "./pages/user/UserDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
+function AppContent() {
+  const location = useLocation();
+  const hideSidebar = ['/welcome', '/login', '/register'].includes(location.pathname);
 
-// Aplicația principală
+  return (
+    <div className="flex h-screen w-screen bg-black overflow-hidden">
+      {!hideSidebar && <Sidebar />}
+      <main className="flex-1 h-full relative bg-slate-950">
+        <Routes>
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/city/:id" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Router>
-      <div className="flex h-screen w-screen bg-black overflow-hidden">
-        
-        {/* Folosim componenta Sidebar importată */}
-        <Sidebar />
-        
-        <main className="flex-1 h-full relative bg-slate-950">
-          <Routes>
-            {/* Paginile importate din folderul /pages */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
-            {/* Rutele noi care folosesc placeholderele de mai sus */}
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/user-dashboard" element={<UserDashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/city/:id" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
-          </Routes>
-        </main>
-      </div>
+      <AppContent />
     </Router>
   );
 }
