@@ -27,12 +27,12 @@ export default function Sidebar() {
         Home
       </NavLink>
       <NavLink to="/cities" onClick={() => setOpen(false)} className={({ isActive }) =>
-  isActive
-    ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
-    : "text-slate-300 hover:text-white transition-all py-2 px-4 rounded-lg hover:bg-slate-800"
-}>
-  Orașe
-</NavLink>
+        isActive
+          ? "text-white py-2 px-4 rounded-lg bg-slate-800 border-l-2 border-indigo-400"
+          : "text-slate-300 hover:text-white transition-all py-2 px-4 rounded-lg hover:bg-slate-800"
+      }>
+        Orașe
+      </NavLink>
 
       {!user ? (
         <>
