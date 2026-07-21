@@ -1,3 +1,4 @@
+import { API_URL } from "../config";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState, useEffect } from "react";
@@ -17,7 +18,7 @@ export default function Home() {
       () => setPosition([44.4268, 26.1025])
     );
 
-    fetch("http://localhost:5000/api/cities")
+    fetch(`${API_URL}/api/cities`)
       .then(res => res.json())
       .then(data => setCities(data))
       .catch(err => console.error("Eroare la cities:", err));

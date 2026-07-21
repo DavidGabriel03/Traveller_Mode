@@ -1,3 +1,4 @@
+import { API_URL } from "../../config";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +8,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/visits', {
+    fetch(`${API_URL}/api/visits`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -15,7 +16,7 @@ export default function UserDashboard() {
   }, []);
 
   const handleRemove = async (cityId) => {
-    const res = await fetch(`http://localhost:5000/api/visits/${cityId}`, {
+    const res = await fetch(`${API_URL}/api/visits/${cityId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });

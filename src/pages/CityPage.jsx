@@ -1,3 +1,4 @@
+import { API_URL } from "../config";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -21,7 +22,7 @@ export default function CityPage() {
   const [visited, setVisited] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/visits", {
+    fetch(`${API_URL}/api/visits`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -34,7 +35,7 @@ export default function CityPage() {
   const handleVisit = async () => {
     if (visited) {
       const res = await fetch(
-        `http://localhost:5000/api/visits/${parseInt(id)}`,
+        `${API_URL}/api/visits/${parseInt(id)}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -42,7 +43,7 @@ export default function CityPage() {
       );
       if (res.ok) setVisited(false);
     } else {
-      const res = await fetch("http://localhost:5000/api/visits", {
+      const res = await fetch(`${API_URL}/api/visits`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +56,7 @@ export default function CityPage() {
   };
 
   const handleDelete = async (commentId) => {
-    const res = await fetch(`http://localhost:5000/api/comments/${commentId}`, {
+    const res = await fetch(`${API_URL}/api/comments/${commentId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -67,7 +68,7 @@ export default function CityPage() {
   const handleAddPhoto = async () => {
     if (!photoUrl.trim()) return;
 
-    const res = await fetch(`http://localhost:5000/api/cities/${id}/photos`, {
+    const res = await fetch(`${API_URL}/api/cities/${id}/photos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,7 +86,7 @@ export default function CityPage() {
   };
 
   const handleDeletePhoto = async (photoId) => {
-    const res = await fetch(`http://localhost:5000/api/photos/${photoId}`, {
+    const res = await fetch(`${API_URL}/api/photos/${photoId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -93,14 +94,14 @@ export default function CityPage() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/cities/${id}`)
+    fetch(`${API_URL}/api/cities/${id}`)
       .then((res) => res.json())
       .then((data) => setCity(data));
 
-    fetch(`http://localhost:5000/api/cities/${id}/comments`)
+    fetch(`${API_URL}/api/cities/${id}/comments`)
       .then((res) => res.json())
       .then((data) => setComments(data));
-    fetch(`http://localhost:5000/api/cities/${id}/photos`)
+    fetch(`${API_URL}/api/cities/${id}/photos`)
       .then((res) => res.json())
       .then((data) => setPhotos(data));
   }, [id]);
@@ -108,7 +109,7 @@ export default function CityPage() {
   const handleComment = async () => {
     if (!text.trim()) return;
 
-    const res = await fetch(`http://localhost:5000/api/cities/${id}/comments`, {
+    const res = await fetch(`${API_URL}/api/cities/${id}/comments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -123,7 +124,7 @@ export default function CityPage() {
       setText("");
       setRating(5);
       // Reîncarcă orașul pentru livability_score actualizat
-      fetch(`http://localhost:5000/api/cities/${id}`)
+      fetch(`${API_URL}/api/cities/${id}`)
         .then((r) => r.json())
         .then((data) => setCity(data));
     }
@@ -309,7 +310,7 @@ export default function CityPage() {
         if (!file) return;
         const formData = new FormData();
         formData.append('photo', file);
-        const res = await fetch('http://localhost:5000/api/upload', {
+        const res = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData

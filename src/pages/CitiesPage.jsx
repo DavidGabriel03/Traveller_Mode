@@ -1,3 +1,4 @@
+import { API_URL } from "../config";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,7 +11,7 @@ export default function CitiesPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/cities")
+    fetch(`${API_URL}/api/cities`)
       .then(res => res.json())
       .then(data => setCities(data));
   }, []);

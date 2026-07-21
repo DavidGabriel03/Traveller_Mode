@@ -1,3 +1,4 @@
+import { API_URL } from "../../config";
 import { useState, useEffect } from "react";
 
 export default function AdminDashboard() {
@@ -8,19 +9,19 @@ export default function AdminDashboard() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/admin/users', {
+    fetch(`${API_URL}/api/admin/users`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setUsers(data));
 
-    fetch('http://localhost:5000/api/admin/comments', {
+    fetch(`${API_URL}/api/admin/comments`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setComments(data));
 
-    fetch('http://localhost:5000/api/admin/cities', {
+    fetch(`${API_URL}/api/admin/cities`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setCities(data));
     
-    fetch('http://localhost:5000/api/admin/stats', {
+    fetch(`${API_URL}/api/admin/stats`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
   }, []);
 
   const handleRoleChange = async (id, newRole) => {
-    const res = await fetch(`http://localhost:5000/api/admin/users/${id}/role`, {
+    const res = await fetch(`${API_URL}/api/admin/users/${id}/role`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ role: newRole })
@@ -38,7 +39,7 @@ export default function AdminDashboard() {
 
   const handleDelete = async (id) => {
     if (!confirm("Ești sigur că vrei să ștergi acest user?")) return;
-    const res = await fetch(`http://localhost:5000/api/admin/users/${id}`, {
+    const res = await fetch(`${API_URL}/api/admin/users/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
 
   const handleDeleteComment = async (id) => {
     if (!confirm("Ștergi comentariul?")) return;
-    const res = await fetch(`http://localhost:5000/api/comments/${id}`, {
+    const res = await fetch(`${API_URL}/api/comments/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -55,7 +56,7 @@ export default function AdminDashboard() {
   };
 
   const handleStatsUpdate = async (id, stats) => {
-    const res = await fetch(`http://localhost:5000/api/admin/cities/${id}/stats`, {
+    const res = await fetch(`${API_URL}/api/admin/cities/${id}/stats`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(stats)

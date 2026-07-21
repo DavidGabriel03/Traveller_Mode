@@ -8,7 +8,9 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+}));
 
 // CONEXIUNEA LA MYSQL ȘI SINCRONIZAREA MODELELOR
 const sequelize = require('./db');
@@ -106,7 +108,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 // GET toate orașele
 app.get('/api/cities', async (req, res) => {
   try {
@@ -430,7 +432,7 @@ app.delete('/api/photos/:id', async (req, res) => {
 
 app.post('/api/upload', upload.single('photo'), (req, res) => {
   if (!req.file) return res.status(400).json({ msg: "Niciun fișier!" });
-  res.json({ url: `http://localhost:5000/uploads/${req.file.filename}` });
+  res.json({ url: `${process.env.BACKEND_URL || 'http://localhost:5000'}/uploads/${req.file.filename}` });
 });
 app.use('/uploads', express.static('uploads'));
 app.get('/api/admin/stats', async (req, res) => {

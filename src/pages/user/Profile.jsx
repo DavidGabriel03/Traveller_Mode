@@ -1,3 +1,4 @@
+import { API_URL } from "../../config";
 import React, { useState, useEffect } from "react";
 
 export default function Profile() {
@@ -17,11 +18,11 @@ export default function Profile() {
 
   useEffect(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/visits', {
+    fetch(`${API_URL}/api/visits`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setVisits(data));
 
-    fetch('http://localhost:5000/api/mycomments', {
+    fetch(`${API_URL}/api/mycomments`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => res.json()).then(data => setComments(data));
   }, []);
@@ -42,7 +43,7 @@ export default function Profile() {
       return;
     }
 
-    const res = await fetch('http://localhost:5000/api/profile', {
+    const res = await fetch(`${API_URL}/api/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
