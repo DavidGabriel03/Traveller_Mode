@@ -26,5 +26,4 @@ backend/.env
 .env
 !.env.example
 !backend/.env.example
-backend/uploads/
 backend/aiUpdate.js.save
