@@ -1,8 +1,21 @@
 import { API_URL } from "../config";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+
+// Fix: Vite rupe path-urile implicite ale iconițelor Leaflet la build,
+// așa că le reconstruim manual din pachetul instalat.
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 export default function Home() {
   const token = localStorage.getItem("token");
